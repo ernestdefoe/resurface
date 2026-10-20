@@ -3,7 +3,7 @@ import Component from 'flarum/common/Component';
 import Group from 'flarum/common/models/Group';
 import Icon from 'flarum/common/components/Icon';
 
-const t = (key, params) => app.translator.trans(`ernestdefoe-buoy.admin.groups.${key}`, params);
+const t = (key, params) => app.translator.trans(`ernestdefoe-resurface.admin.groups.${key}`, params);
 
 const parse = (json) => {
   try {
@@ -37,7 +37,7 @@ export default class GroupLimits extends Component {
     };
 
     return (
-      <div className="Form-group BuoyGroupLimits">
+      <div className="Form-group ResurfaceGroupLimits">
         <label>{t('label')}</label>
         <div className="helpText">{t('help')}</div>
         <table>

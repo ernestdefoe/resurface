@@ -1,11 +1,11 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Api;
+namespace Ernestdefoe\Resurface\Api;
 
 use Carbon\Carbon;
-use Ernestdefoe\Buoy\Bump;
-use Ernestdefoe\Buoy\Bumper;
-use Ernestdefoe\Buoy\Schedule;
+use Ernestdefoe\Resurface\Bump;
+use Ernestdefoe\Resurface\Bumper;
+use Ernestdefoe\Resurface\Schedule;
 use Flarum\Api\Context;
 use Flarum\Api\Resource\DiscussionResource;
 use Flarum\Api\Schema;
@@ -15,9 +15,9 @@ use Flarum\Locale\TranslatorInterface;
 use WeakMap;
 
 /**
- * Buoy's fields on discussions.
+ * Resurface's fields on discussions.
  *
- * Lists get only `buoyBumpedAt`, a column, so they cost nothing. The rest
+ * Lists get only `resurfaceBumpedAt`, a column, so they cost nothing. The rest
  * needs a policy check and a query or two, so it is only worked out for the
  * one discussion a discussion page shows (or a bump/plan just saved).
  */
@@ -34,49 +34,49 @@ class DiscussionFields
     /** @return array<\Tobyz\JsonApiServer\Schema\Field\Field> */
     public function __invoke(): array
     {
-        // A discussion page, or a save that touched Buoy: not the read
+        // A discussion page, or a save that touched Resurface: not the read
         // tracking PATCH that fires as people scroll.
         $single = fn (Discussion $d, Context $c) => $c->showing(DiscussionResource::class)
-            || ($c->updating(DiscussionResource::class) && $this->touchesBuoy($c));
+            || ($c->updating(DiscussionResource::class) && $this->touchesResurface($c));
 
         return [
-            Schema\DateTime::make('buoyBumpedAt')
-                ->get(fn (Discussion $d) => $d->buoy_bumped_at),
+            Schema\DateTime::make('resurfaceBumpedAt')
+                ->get(fn (Discussion $d) => $d->resurface_bumped_at),
 
-            Schema\Boolean::make('buoyCanBump')
+            Schema\Boolean::make('resurfaceCanBump')
                 ->visible($single)
                 ->get(fn (Discussion $d, Context $c) => $this->state($d, $c)['canBump']),
 
             // When the actor may bump it next, if not now: the cooldown since
             // its last activity, or the daily limit.
-            Schema\DateTime::make('buoyNextBumpAt')
+            Schema\DateTime::make('resurfaceNextBumpAt')
                 ->nullable()
                 ->visible($single)
                 ->get(fn (Discussion $d, Context $c) => $this->state($d, $c)['status']['nextAt'] ?? null),
 
             // Bumps the actor has left in the current 24 hours; null: no limit.
-            Schema\Integer::make('buoyBumpsLeft')
+            Schema\Integer::make('resurfaceBumpsLeft')
                 ->nullable()
                 ->visible($single)
                 ->get(fn (Discussion $d, Context $c) => $this->state($d, $c)['status']['left'] ?? null),
 
             // The cooldown in hours for the actor; the planner keeps repeats at least this far apart.
-            Schema\Number::make('buoyCooldown')
+            Schema\Number::make('resurfaceCooldown')
                 ->visible($single)
                 ->get(fn (Discussion $d, Context $c) => $this->state($d, $c)['status']['cooldown'] ?? 0),
 
-            Schema\Boolean::make('buoyCanSchedule')
+            Schema\Boolean::make('resurfaceCanSchedule')
                 ->visible($single)
                 ->get(fn (Discussion $d, Context $c) => $this->state($d, $c)['canSchedule']),
 
             // The log is forum-wide, so it takes the global permission.
-            Schema\Boolean::make('buoyCanViewLog')
+            Schema\Boolean::make('resurfaceCanViewLog')
                 ->visible($single)
-                ->get(fn (Discussion $d, Context $c) => $c->getActor()->hasPermission('discussion.buoyBumpAny')),
+                ->get(fn (Discussion $d, Context $c) => $c->getActor()->hasPermission('discussion.resurfaceBumpAny')),
 
-            Schema\Boolean::make('buoyBump')
+            Schema\Boolean::make('resurfaceBump')
                 ->hidden()
-                ->writable(fn (Discussion $d, Context $c) => $c->updating() && $c->getActor()->can('buoyBump', $d))
+                ->writable(fn (Discussion $d, Context $c) => $c->updating() && $c->getActor()->can('resurfaceBump', $d))
                 ->set(fn () => null)
                 ->save(function (Discussion $d, mixed $value, Context $c) {
                     if ($value) {
@@ -86,11 +86,11 @@ class DiscussionFields
                 }),
 
             // The plan, for those who may make one: {at, every, times}, or null.
-            Schema\Arr::make('buoySchedule')
+            Schema\Arr::make('resurfaceSchedule')
                 ->nullable()
                 ->visible(fn (Discussion $d, Context $c) => $single($d, $c) && $this->state($d, $c)['canSchedule'])
                 ->get(fn (Discussion $d) => $this->plan($d))
-                ->writable(fn (Discussion $d, Context $c) => $c->updating() && $c->getActor()->can('buoySchedule', $d))
+                ->writable(fn (Discussion $d, Context $c) => $c->updating() && $c->getActor()->can('resurfaceSchedule', $d))
                 ->set(fn () => null)
                 ->save(function (Discussion $d, mixed $value, Context $c) {
                     $this->savePlan($d, $value, $c);
@@ -99,11 +99,11 @@ class DiscussionFields
         ];
     }
 
-    private function touchesBuoy(Context $c): bool
+    private function touchesResurface(Context $c): bool
     {
         $attributes = $c->request->getParsedBody()['data']['attributes'] ?? null;
 
-        return is_array($attributes) && (array_key_exists('buoyBump', $attributes) || array_key_exists('buoySchedule', $attributes));
+        return is_array($attributes) && (array_key_exists('resurfaceBump', $attributes) || array_key_exists('resurfaceSchedule', $attributes));
     }
 
     /** @return array{canBump: bool, canSchedule: bool, status: array<string, mixed>|null} */
@@ -114,11 +114,11 @@ class DiscussionFields
         }
 
         $actor = $c->getActor();
-        $canBump = $actor->can('buoyBump', $d);
+        $canBump = $actor->can('resurfaceBump', $d);
 
         return $this->memo[$d] = [
             'canBump' => $canBump,
-            'canSchedule' => $canBump && $actor->can('buoySchedule', $d),
+            'canSchedule' => $canBump && $actor->can('resurfaceSchedule', $d),
             'status' => $canBump ? $this->bumper->status($actor, $d) : null,
         ];
     }
@@ -153,18 +153,18 @@ class DiscussionFields
             $at = null;
         }
         if (! $at || empty($value['at']) || $at->lt(Carbon::now()->subMinutes(5)) || $at->gt(Carbon::now()->addYear())) {
-            $errors['at'] = $this->translator->trans('ernestdefoe-buoy.api.plan_at');
+            $errors['at'] = $this->translator->trans('ernestdefoe-resurface.api.plan_at');
         }
 
         $every = $value['every'] ?? null;
         if ($every !== null && (! is_int($every) || $every < 1 || $every > 8760)) {
-            $errors['every'] = $this->translator->trans('ernestdefoe-buoy.api.plan_every');
+            $errors['every'] = $this->translator->trans('ernestdefoe-resurface.api.plan_every');
             $every = null;
         }
 
         $times = $every === null ? null : ($value['times'] ?? null);
         if ($times !== null && (! is_int($times) || $times < 1 || $times > 999)) {
-            $errors['times'] = $this->translator->trans('ernestdefoe-buoy.api.plan_times');
+            $errors['times'] = $this->translator->trans('ernestdefoe-resurface.api.plan_times');
         }
 
         // Members' planned bumps keep to their own limits, so a plan that
@@ -172,15 +172,15 @@ class DiscussionFields
         $status = $this->bumper->status($actor, $d);
         $cooldown = (int) ceil($status['cooldown']);
         if (! $status['bypass'] && $every !== null && $every < $cooldown) {
-            $errors['every'] = $this->translator->trans('ernestdefoe-buoy.api.plan_every_cooldown', ['hours' => $cooldown]);
+            $errors['every'] = $this->translator->trans('ernestdefoe-resurface.api.plan_every_cooldown', ['hours' => $cooldown]);
         }
         if (! $status['bypass'] && $at && $d->last_posted_at && $status['cooldown'] > 0
             && $at->lt($d->last_posted_at->copy()->addMinutes((int) ceil($status['cooldown'] * 60)))) {
-            $errors['at'] = $this->translator->trans('ernestdefoe-buoy.api.plan_at_cooldown');
+            $errors['at'] = $this->translator->trans('ernestdefoe-resurface.api.plan_at_cooldown');
         }
 
         if ($errors) {
-            throw new ValidationException(['buoySchedule' => implode(' ', array_unique($errors))]);
+            throw new ValidationException(['resurfaceSchedule' => implode(' ', array_unique($errors))]);
         }
 
         $schedule = Schedule::query()->where('discussion_id', $d->id)->first() ?? new Schedule();

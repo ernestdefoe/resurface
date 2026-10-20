@@ -1,8 +1,8 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Access;
+namespace Ernestdefoe\Resurface\Access;
 
-use Ernestdefoe\Buoy\Settings;
+use Ernestdefoe\Resurface\Settings;
 use Flarum\Discussion\Discussion;
 use Flarum\Extension\ExtensionManager;
 use Flarum\Settings\SettingsRepositoryInterface;
@@ -14,7 +14,7 @@ use Flarum\User\User;
  * bumps per day) are not permissions: they live in Limits and Bumper.
  *
  * Returning null hands the decision to core and flarum/tags: core allows it
- * with the `discussion.buoyBump` / `discussion.buoySchedule` permission, and
+ * with the `discussion.resurfaceBump` / `discussion.resurfaceSchedule` permission, and
  * tags asks for the tag-scoped one in restricted tags.
  */
 class DiscussionPolicy extends AbstractPolicy
@@ -25,15 +25,15 @@ class DiscussionPolicy extends AbstractPolicy
     ) {
     }
 
-    public function buoyBump(User $actor, Discussion $discussion): ?string
+    public function resurfaceBump(User $actor, Discussion $discussion): ?string
     {
         if ($discussion->hidden_at || $actor->isGuest()) {
             return $this->deny();
         }
 
         // Force: in a restricted tag, flarum/tags would otherwise deny
-        // `buoyBump` to staff who hold only the tag's "bump any" permission.
-        if ($actor->can('buoyBumpAny', $discussion)) {
+        // `resurfaceBump` to staff who hold only the tag's "bump any" permission.
+        if ($actor->can('resurfaceBumpAny', $discussion)) {
             return $this->forceAllow();
         }
 
@@ -44,13 +44,13 @@ class DiscussionPolicy extends AbstractPolicy
         return null;
     }
 
-    public function buoySchedule(User $actor, Discussion $discussion): ?string
+    public function resurfaceSchedule(User $actor, Discussion $discussion): ?string
     {
-        if (! $actor->can('buoyBump', $discussion)) {
+        if (! $actor->can('resurfaceBump', $discussion)) {
             return $this->deny();
         }
 
-        if ($actor->can('buoyBumpAny', $discussion)) {
+        if ($actor->can('resurfaceBumpAny', $discussion)) {
             return $this->forceAllow();
         }
 

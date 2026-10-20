@@ -1,15 +1,15 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Tests\integration\api;
+namespace Ernestdefoe\Resurface\Tests\integration\api;
 
 use Carbon\Carbon;
-use Ernestdefoe\Buoy\Settings;
-use Ernestdefoe\Buoy\Tests\integration\BuoyTestCase;
+use Ernestdefoe\Resurface\Settings;
+use Ernestdefoe\Resurface\Tests\integration\ResurfaceTestCase;
 use Flarum\Discussion\Discussion;
 use Flarum\User\Guest;
 use PHPUnit\Framework\Attributes\Test;
 
-class BumpTest extends BuoyTestCase
+class BumpTest extends ResurfaceTestCase
 {
     #[Test]
     public function owner_bumps_a_quiet_discussion_without_a_post(): void
@@ -20,8 +20,8 @@ class BumpTest extends BuoyTestCase
         $this->assertEquals(200, $response->getStatusCode(), (string) $response->getBody());
 
         $after = $this->row(1);
-        $this->assertNotNull($after->buoy_bumped_at);
-        $this->assertEquals($after->buoy_bumped_at, $after->last_posted_at);
+        $this->assertNotNull($after->resurface_bumped_at);
+        $this->assertEquals($after->resurface_bumped_at, $after->last_posted_at);
         $this->assertTrue(Carbon::parse($after->last_posted_at)->gt(Carbon::now()->subMinute()));
 
         // Nothing about the posts changes: no unread, no "replied" by anyone new.
@@ -30,13 +30,13 @@ class BumpTest extends BuoyTestCase
         $this->assertEquals($before->last_posted_user_id, $after->last_posted_user_id);
         $this->assertEquals(1, $this->database()->table('posts')->where('discussion_id', 1)->count());
 
-        $log = $this->database()->table('buoy_bumps')->first();
+        $log = $this->database()->table('resurface_bumps')->first();
         $this->assertEquals([1, 2, 'manual'], [(int) $log->discussion_id, (int) $log->user_id, $log->source]);
 
         $attributes = $this->json($response)['data']['attributes'];
-        $this->assertNotNull($attributes['buoyBumpedAt']);
-        $this->assertSame(0, $attributes['buoyBumpsLeft']);
-        $this->assertNotNull($attributes['buoyNextBumpAt']);
+        $this->assertNotNull($attributes['resurfaceBumpedAt']);
+        $this->assertSame(0, $attributes['resurfaceBumpsLeft']);
+        $this->assertNotNull($attributes['resurfaceNextBumpAt']);
 
         // The tags page names it as the tag's latest discussion, as a reply would.
         $this->assertEquals(1, (int) $this->database()->table('tags')->where('id', 1)->value('last_posted_discussion_id'));
@@ -46,7 +46,7 @@ class BumpTest extends BuoyTestCase
     public function a_discussion_active_within_the_cooldown_cannot_be_bumped(): void
     {
         $this->assertEquals(422, $this->bump(2, 2)->getStatusCode());
-        $this->assertNull($this->row(2)->buoy_bumped_at);
+        $this->assertNull($this->row(2)->resurface_bumped_at);
         $this->assertSame(0, $this->bumps());
     }
 
@@ -61,7 +61,7 @@ class BumpTest extends BuoyTestCase
     #[Test]
     public function bumps_older_than_a_day_no_longer_count(): void
     {
-        $this->database()->table('buoy_bumps')->insert(['discussion_id' => 6, 'user_id' => 2, 'source' => 'manual', 'created_at' => Carbon::now()->subHours(25)]);
+        $this->database()->table('resurface_bumps')->insert(['discussion_id' => 6, 'user_id' => 2, 'source' => 'manual', 'created_at' => Carbon::now()->subHours(25)]);
 
         $this->assertEquals(200, $this->bump(1, 2)->getStatusCode());
     }
@@ -76,7 +76,7 @@ class BumpTest extends BuoyTestCase
 
         $this->assertEquals(200, $this->bump(1, 2)->getStatusCode());
         $this->assertEquals(200, $this->bump(6, 2)->getStatusCode());
-        $this->assertSame(0, $this->show(1, 2)['data']['attributes']['buoyBumpsLeft']);
+        $this->assertSame(0, $this->show(1, 2)['data']['attributes']['resurfaceBumpsLeft']);
     }
 
     #[Test]
@@ -95,14 +95,14 @@ class BumpTest extends BuoyTestCase
 
         $this->assertEquals(200, $this->bump(1, 2)->getStatusCode());
         $this->assertEquals(200, $this->bump(6, 2)->getStatusCode());
-        $this->assertNull($this->show(1, 2)['data']['attributes']['buoyBumpsLeft']);
+        $this->assertNull($this->show(1, 2)['data']['attributes']['resurfaceBumpsLeft']);
     }
 
     #[Test]
     public function members_cannot_bump_someone_elses_discussion(): void
     {
         $this->assertEquals(403, $this->bump(1, 3)->getStatusCode());
-        $this->assertFalse($this->show(1, 3)['data']['attributes']['buoyCanBump']);
+        $this->assertFalse($this->show(1, 3)['data']['attributes']['resurfaceCanBump']);
     }
 
     #[Test]
@@ -112,14 +112,14 @@ class BumpTest extends BuoyTestCase
         // refuses them as well.
         $this->assertContains($this->bump(1, null)->getStatusCode(), [400, 401, 403]);
         $this->app();
-        $this->assertFalse((new Guest())->can('buoyBump', Discussion::query()->find(1)));
+        $this->assertFalse((new Guest())->can('resurfaceBump', Discussion::query()->find(1)));
         $this->assertSame(0, $this->bumps());
     }
 
     #[Test]
     public function without_the_permission_owners_cannot_bump(): void
     {
-        $this->database()->table('group_permission')->where('permission', 'discussion.buoyBump')->delete();
+        $this->database()->table('group_permission')->where('permission', 'discussion.resurfaceBump')->delete();
 
         $this->assertEquals(403, $this->bump(1, 2)->getStatusCode());
     }
@@ -135,9 +135,9 @@ class BumpTest extends BuoyTestCase
         $this->assertSame(4, $this->bumps());
 
         $attributes = $this->show(3, 4)['data']['attributes'];
-        $this->assertNull($attributes['buoyNextBumpAt']);
-        $this->assertNull($attributes['buoyBumpsLeft']);
-        $this->assertTrue($attributes['buoyCanViewLog']);
+        $this->assertNull($attributes['resurfaceNextBumpAt']);
+        $this->assertNull($attributes['resurfaceBumpsLeft']);
+        $this->assertTrue($attributes['resurfaceCanViewLog']);
     }
 
     #[Test]
@@ -174,14 +174,14 @@ class BumpTest extends BuoyTestCase
     public function the_discussion_page_says_when_the_next_bump_is_possible(): void
     {
         $attributes = $this->show(1, 2)['data']['attributes'];
-        $this->assertTrue($attributes['buoyCanBump']);
-        $this->assertNull($attributes['buoyNextBumpAt']);
-        $this->assertSame(1, $attributes['buoyBumpsLeft']);
-        $this->assertFalse($attributes['buoyCanSchedule']);
-        $this->assertFalse($attributes['buoyCanViewLog']);
-        $this->assertArrayNotHasKey('buoySchedule', $attributes);
+        $this->assertTrue($attributes['resurfaceCanBump']);
+        $this->assertNull($attributes['resurfaceNextBumpAt']);
+        $this->assertSame(1, $attributes['resurfaceBumpsLeft']);
+        $this->assertFalse($attributes['resurfaceCanSchedule']);
+        $this->assertFalse($attributes['resurfaceCanViewLog']);
+        $this->assertArrayNotHasKey('resurfaceSchedule', $attributes);
 
-        $wait = $this->show(2, 2)['data']['attributes']['buoyNextBumpAt'];
+        $wait = $this->show(2, 2)['data']['attributes']['resurfaceNextBumpAt'];
         $this->assertEqualsWithDelta(Carbon::now()->addHours(23)->getTimestamp(), Carbon::parse($wait)->getTimestamp(), 5);
     }
 
@@ -196,9 +196,9 @@ class BumpTest extends BuoyTestCase
         $data = $this->json($response)['data'];
         $this->assertSame('1', $data[0]['id'], 'the bumped discussion leads the list');
         foreach ($data as $discussion) {
-            $this->assertArrayHasKey('buoyBumpedAt', $discussion['attributes']);
-            $this->assertArrayNotHasKey('buoyCanBump', $discussion['attributes']);
-            $this->assertArrayNotHasKey('buoyBump', $discussion['attributes']);
+            $this->assertArrayHasKey('resurfaceBumpedAt', $discussion['attributes']);
+            $this->assertArrayNotHasKey('resurfaceCanBump', $discussion['attributes']);
+            $this->assertArrayNotHasKey('resurfaceBump', $discussion['attributes']);
         }
     }
 
@@ -218,7 +218,7 @@ class BumpTest extends BuoyTestCase
     public function hiding_a_later_post_keeps_the_bump(): void
     {
         $this->bump(1, 2);
-        $bumped = $this->row(1)->buoy_bumped_at;
+        $bumped = $this->row(1)->resurface_bumped_at;
 
         $discussion = Discussion::query()->find(1);
         $discussion->refreshLastPost();
@@ -239,7 +239,7 @@ class BumpTest extends BuoyTestCase
         $this->assertEquals(201, $response->getStatusCode(), (string) $response->getBody());
 
         $row = $this->row(1);
-        $this->assertGreaterThanOrEqual($row->buoy_bumped_at, $row->last_posted_at);
+        $this->assertGreaterThanOrEqual($row->resurface_bumped_at, $row->last_posted_at);
         $this->assertEquals(3, (int) $row->last_posted_user_id);
     }
 
@@ -256,7 +256,7 @@ class BumpTest extends BuoyTestCase
     }
 
     #[Test]
-    public function read_tracking_saves_cost_buoy_nothing(): void
+    public function read_tracking_saves_cost_resurface_nothing(): void
     {
         $queries = [];
         $this->app();
@@ -267,7 +267,7 @@ class BumpTest extends BuoyTestCase
         $response = $this->patch(1, ['lastReadPostNumber' => 1], 2);
 
         $this->assertEquals(200, $response->getStatusCode(), (string) $response->getBody());
-        $this->assertSame([], array_values(array_filter($queries, fn ($sql) => str_contains($sql, 'buoy_'))));
-        $this->assertArrayNotHasKey('buoyCanBump', $this->json($response)['data']['attributes']);
+        $this->assertSame([], array_values(array_filter($queries, fn ($sql) => str_contains($sql, 'resurface_'))));
+        $this->assertArrayNotHasKey('resurfaceCanBump', $this->json($response)['data']['attributes']);
     }
 }

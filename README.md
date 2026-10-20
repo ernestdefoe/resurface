@@ -1,6 +1,6 @@
-# Buoy
+# Resurface
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) [![Latest Stable Version](https://img.shields.io/packagist/v/ernestdefoe/buoy.svg)](https://packagist.org/packages/ernestdefoe/buoy) [![Total Downloads](https://img.shields.io/packagist/dt/ernestdefoe/buoy.svg)](https://packagist.org/packages/ernestdefoe/buoy)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) [![Latest Stable Version](https://img.shields.io/packagist/v/ernestdefoe/resurface.svg)](https://packagist.org/packages/ernestdefoe/resurface) [![Total Downloads](https://img.shields.io/packagist/dt/ernestdefoe/resurface.svg)](https://packagist.org/packages/ernestdefoe/resurface)
 
 A [Flarum](https://flarum.org) 2 extension. Members bump a discussion back to the top of the list **without replying**. It suits marketplaces, classifieds, trade and wanted boards, and anywhere else a "bump" post is just noise.
 
@@ -28,21 +28,21 @@ On phones the bump and plan items sit in the discussion's menu sheet:
 ## Installation
 
 ```sh
-composer require ernestdefoe/buoy
+composer require ernestdefoe/resurface
 ```
 
-Enable **Buoy** in the admin panel. Planned and repeating bumps need Flarum's scheduler, the cron line from [the Flarum docs](https://docs.flarum.org/2.x/console#schedulerun):
+Enable **Resurface** in the admin panel. Planned and repeating bumps need Flarum's scheduler, the cron line from [the Flarum docs](https://docs.flarum.org/2.x/console#schedulerun):
 
 ```
 * * * * * cd /path/to/flarum && php flarum schedule:run >> /dev/null 2>&1
 ```
 
-Buoy runs every minute and only reads the plans that are due (an indexed query). Each run handles at most 100 plans, so a backlog drains over a few minutes instead of in one long burst.
+Resurface runs every minute and only reads the plans that are due (an indexed query). Each run handles at most 100 plans, so a backlog drains over a few minutes instead of in one long burst.
 
 ## Updating
 
 ```sh
-composer update ernestdefoe/buoy
+composer update ernestdefoe/resurface
 php flarum migrate
 php flarum cache:clear
 ```
@@ -79,29 +79,29 @@ A plan runs as the member who saved it, with that member's permissions and limit
 
 ## What a bump changes, and what it doesn't
 
-A bump moves the discussion's `last_posted_at`, which is what Flarum's "Latest" list sorts by, and records `buoy_bumped_at`. That keeps the sort on Flarum's own index: it adds no query and no join to the discussion list, and Sticky, FrontPage and every other extension that orders by `last_posted_at` keeps working. Everything else stays as it was:
+A bump moves the discussion's `last_posted_at`, which is what Flarum's "Latest" list sorts by, and records `resurface_bumped_at`. That keeps the sort on Flarum's own index: it adds no query and no join to the discussion list, and Sticky, FrontPage and every other extension that orders by `last_posted_at` keeps working. Everything else stays as it was:
 
 | | Behaviour | Why |
 | --- | --- | --- |
 | **Unread** | Members who have read the discussion don't see it as unread. A member who never opened it and has used "Mark all as read" since its last reply will see it as unread again. | Post numbers don't change, and those are what Flarum's unread count is built from. The second case is the bump doing its job: someone who has never seen a listing should notice it. |
 | **"Replied" in lists** | Shows "bumped 5 minutes ago". After the next real reply it shows "replied" again. | A bump isn't a reply, and naming the last poster against the bump time would be wrong. |
 | **Notifications, emails, followers** | Nothing is sent. | No post is created. |
-| **Hiding or deleting a later post** | The discussion keeps its bump position. | Flarum recomputes the last post time when a post is hidden. Buoy keeps the bump unless a newer reply passes it. |
+| **Hiding or deleting a later post** | The discussion keeps its bump position. | Flarum recomputes the last post time when a post is hidden. Resurface keeps the bump unless a newer reply passes it. |
 | **Tags page** | The bumped discussion becomes the tag's latest discussion, exactly as a reply would make it. | It's now the latest discussion in that tag by the same measure the list uses. |
-| **FoF Prevent Necrobumping** | A bump counts as activity: a reply soon after a bump doesn't warn about an old discussion. | Bumping says "this is still current", and by then the discussion is at the top of the list. Leave the tags where necrobumping matters off Buoy's tag list. |
-| **FoF Sitemap** | The discussion's `lastmod` moves to the bump time. | The sitemap reads the same column. A listing its owner has just confirmed as current is reasonably "modified". Buoy doesn't replace FoF Sitemap's resource, so it can't break a sitemap. |
+| **FoF Prevent Necrobumping** | A bump counts as activity: a reply soon after a bump doesn't warn about an old discussion. | Bumping says "this is still current", and by then the discussion is at the top of the list. Leave the tags where necrobumping matters off Resurface's tag list. |
+| **FoF Sitemap** | The discussion's `lastmod` moves to the bump time. | The sitemap reads the same column. A listing its owner has just confirmed as current is reasonably "modified". Resurface doesn't replace FoF Sitemap's resource, so it can't break a sitemap. |
 | **Digest emails** | Digests that pick "active discussions" by last activity can include a bumped one. | They read the same column. |
 
 ## Charging for bumps
 
-Buoy never takes payments. For paid bumps, [Payments by Floxum](https://floxum.com) has **Pay to Bump**. Developers can hook into the `Ernestdefoe\Buoy\Event\Bumping` event, which fires once every check has passed and before the bump is made. Throwing an exception there (for example a `Flarum\Foundation\ValidationException` with a message for the member) stops the bump. `Ernestdefoe\Buoy\Event\Bumped` fires afterwards. Points, credits or a payment check can live in your own extension.
+Resurface never takes payments. For paid bumps, [Payments by Floxum](https://floxum.com) has **Pay to Bump**. Developers can hook into the `Ernestdefoe\Resurface\Event\Bumping` event, which fires once every check has passed and before the bump is made. Throwing an exception there (for example a `Flarum\Foundation\ValidationException` with a message for the member) stops the bump. `Ernestdefoe\Resurface\Event\Bumped` fires afterwards. Points, credits or a payment check can live in your own extension.
 
 ## API
 
-- `PATCH /api/discussions/{id}` with `{"buoyBump": true}` bumps the discussion.
-- `PATCH /api/discussions/{id}` with `{"buoySchedule": {"at": "<ISO 8601>", "every": <hours or null>, "times": <count or null>}}` saves a plan. `null` cancels it.
-- `GET /api/buoy-bumps?filter[discussion]={id}` returns the log, for staff.
-- Discussion attributes: `buoyBumpedAt` everywhere. On a single discussion only: `buoyCanBump`, `buoyNextBumpAt`, `buoyBumpsLeft`, `buoyCooldown`, `buoyCanSchedule`, `buoyCanViewLog` and `buoySchedule`.
+- `PATCH /api/discussions/{id}` with `{"resurfaceBump": true}` bumps the discussion.
+- `PATCH /api/discussions/{id}` with `{"resurfaceSchedule": {"at": "<ISO 8601>", "every": <hours or null>, "times": <count or null>}}` saves a plan. `null` cancels it.
+- `GET /api/resurface-bumps?filter[discussion]={id}` returns the log, for staff.
+- Discussion attributes: `resurfaceBumpedAt` everywhere. On a single discussion only: `resurfaceCanBump`, `resurfaceNextBumpAt`, `resurfaceBumpsLeft`, `resurfaceCooldown`, `resurfaceCanSchedule`, `resurfaceCanViewLog` and `resurfaceSchedule`.
 
 ## Translations
 
@@ -109,6 +109,6 @@ English and French are included. Every string is in `locale/`.
 
 ## Links
 
-- [Source](https://github.com/ernestdefoe/buoy)
-- [Report an issue](https://github.com/ernestdefoe/buoy/issues)
+- [Source](https://github.com/ernestdefoe/resurface)
+- [Report an issue](https://github.com/ernestdefoe/resurface/issues)
 - ☕ [Buy me a coffee](https://buymeacoffee.com/ernestdefoe)

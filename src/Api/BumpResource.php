@@ -1,8 +1,8 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Api;
+namespace Ernestdefoe\Resurface\Api;
 
-use Ernestdefoe\Buoy\Bump;
+use Ernestdefoe\Resurface\Bump;
 use Flarum\Api\Endpoint;
 use Flarum\Api\Resource\AbstractDatabaseResource;
 use Flarum\Api\Schema;
@@ -18,7 +18,7 @@ class BumpResource extends AbstractDatabaseResource
 {
     public function type(): string
     {
-        return 'buoy-bumps';
+        return 'resurface-bumps';
     }
 
     public function model(): string
@@ -30,7 +30,7 @@ class BumpResource extends AbstractDatabaseResource
     {
         return [
             Endpoint\Index::make()
-                ->can('discussion.buoyBumpAny')
+                ->can('discussion.resurfaceBumpAny')
                 ->defaultInclude(['discussion', 'user'])
                 // What the included discussions' and users' own fields read
                 // (read state, groups); tags adds its relation in extend.php.

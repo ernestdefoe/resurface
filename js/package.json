@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@ernestdefoe/buoy",
+  "name": "@ernestdefoe/resurface",
   "version": "0.0.0",
   "scripts": {
     "dev": "webpack --mode development --watch",

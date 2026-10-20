@@ -1,13 +1,13 @@
 <?php
 
-use Ernestdefoe\Buoy\Access\DiscussionPolicy;
-use Ernestdefoe\Buoy\Api;
-use Ernestdefoe\Buoy\BuoyServiceProvider;
-use Ernestdefoe\Buoy\Bump;
-use Ernestdefoe\Buoy\Console\RunSchedules;
-use Ernestdefoe\Buoy\Search\BumpSearcher;
-use Ernestdefoe\Buoy\Search\DiscussionFilter;
-use Ernestdefoe\Buoy\Settings;
+use Ernestdefoe\Resurface\Access\DiscussionPolicy;
+use Ernestdefoe\Resurface\Api;
+use Ernestdefoe\Resurface\ResurfaceServiceProvider;
+use Ernestdefoe\Resurface\Bump;
+use Ernestdefoe\Resurface\Console\RunSchedules;
+use Ernestdefoe\Resurface\Search\BumpSearcher;
+use Ernestdefoe\Resurface\Search\DiscussionFilter;
+use Ernestdefoe\Resurface\Settings;
 use Flarum\Api\Endpoint;
 use Flarum\Api\Resource\DiscussionResource;
 use Flarum\Discussion\Discussion;
@@ -34,7 +34,7 @@ return [
         ->default(Settings::LOG_DAYS, Settings::DEFAULTS[Settings::LOG_DAYS]),
 
     (new Extend\Model(Discussion::class))
-        ->cast('buoy_bumped_at', 'datetime'),
+        ->cast('resurface_bumped_at', 'datetime'),
 
     (new Extend\ApiResource(DiscussionResource::class))
         ->fields(Api\DiscussionFields::class),
@@ -55,7 +55,7 @@ return [
         ->modelPolicy(Discussion::class, DiscussionPolicy::class),
 
     (new Extend\ServiceProvider())
-        ->register(BuoyServiceProvider::class),
+        ->register(ResurfaceServiceProvider::class),
 
     (new Extend\Console())
         ->command(RunSchedules::class)

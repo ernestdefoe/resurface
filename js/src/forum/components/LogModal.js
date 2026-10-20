@@ -4,11 +4,11 @@ import BumpLog from '../../common/BumpLog';
 
 export default class LogModal extends Modal {
   className() {
-    return 'BuoyLogModal Modal--medium';
+    return 'ResurfaceLogModal Modal--medium';
   }
 
   title() {
-    return app.translator.trans('ernestdefoe-buoy.forum.log.title');
+    return app.translator.trans('ernestdefoe-resurface.forum.log.title');
   }
 
   content() {

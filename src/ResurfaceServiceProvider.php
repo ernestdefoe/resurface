@@ -1,12 +1,12 @@
 <?php
 
-namespace Ernestdefoe\Buoy;
+namespace Ernestdefoe\Resurface;
 
-use Ernestdefoe\Buoy\Listener\KeepBump;
+use Ernestdefoe\Resurface\Listener\KeepBump;
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\AbstractServiceProvider;
 
-class BuoyServiceProvider extends AbstractServiceProvider
+class ResurfaceServiceProvider extends AbstractServiceProvider
 {
     public function boot(): void
     {

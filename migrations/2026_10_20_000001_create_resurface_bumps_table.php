@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 
 // The bump log: one row per bump. Daily limits count a member's rows from the
 // last 24 hours; staff read it as the log.
-return Migration::createTable('buoy_bumps', function (Blueprint $table) {
+return Migration::createTable('resurface_bumps', function (Blueprint $table) {
     $table->increments('id');
     $table->unsignedInteger('discussion_id');
     $table->unsignedInteger('user_id')->nullable();

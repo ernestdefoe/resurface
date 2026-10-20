@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Buoy;
+namespace Ernestdefoe\Resurface;
 
 use Carbon\Carbon;
 use Flarum\Database\AbstractModel;
@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Schedule extends AbstractModel
 {
-    protected $table = 'buoy_schedules';
+    protected $table = 'resurface_schedules';
 
     public $timestamps = true;
 

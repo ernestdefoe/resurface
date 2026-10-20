@@ -1,12 +1,12 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Tests\integration\api;
+namespace Ernestdefoe\Resurface\Tests\integration\api;
 
 use Carbon\Carbon;
-use Ernestdefoe\Buoy\Tests\integration\BuoyTestCase;
+use Ernestdefoe\Resurface\Tests\integration\ResurfaceTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-class LogTest extends BuoyTestCase
+class LogTest extends ResurfaceTestCase
 {
     protected function setUp(): void
     {
@@ -14,7 +14,7 @@ class LogTest extends BuoyTestCase
 
         $now = Carbon::now();
         $this->prepareDatabase([
-            'buoy_bumps' => [
+            'resurface_bumps' => [
                 ['id' => 1, 'discussion_id' => 1, 'user_id' => 2, 'source' => 'manual', 'created_at' => $now->copy()->subHours(3)],
                 ['id' => 2, 'discussion_id' => 6, 'user_id' => 2, 'source' => 'auto', 'created_at' => $now->copy()->subHours(2)],
                 ['id' => 3, 'discussion_id' => 7, 'user_id' => 2, 'source' => 'manual', 'created_at' => $now->copy()->subHour()],
@@ -24,7 +24,7 @@ class LogTest extends BuoyTestCase
 
     private function log(int $as, array $query = []): \Psr\Http\Message\ResponseInterface
     {
-        return $this->send($this->request('GET', '/api/buoy-bumps', ['authenticatedAs' => $as])->withQueryParams($query));
+        return $this->send($this->request('GET', '/api/resurface-bumps', ['authenticatedAs' => $as])->withQueryParams($query));
     }
 
     #[Test]
@@ -66,7 +66,7 @@ class LogTest extends BuoyTestCase
         for ($id = 20; $id < 32; $id++) {
             $this->database()->table('discussions')->insert(['id' => $id, 'title' => "Listing $id", 'slug' => "listing-$id", 'user_id' => 2, 'created_at' => $now, 'last_posted_at' => $now, 'comment_count' => 1, 'is_private' => 0]);
             $this->database()->table('discussion_tag')->insert(['discussion_id' => $id, 'tag_id' => 1]);
-            $this->database()->table('buoy_bumps')->insert(['discussion_id' => $id, 'user_id' => 2, 'source' => 'manual', 'created_at' => $now]);
+            $this->database()->table('resurface_bumps')->insert(['discussion_id' => $id, 'user_id' => 2, 'source' => 'manual', 'created_at' => $now]);
         }
 
         $response = $this->log(4);

@@ -2,8 +2,8 @@ import Extend from 'flarum/common/extenders';
 import Model from 'flarum/common/Model';
 import Discussion from 'flarum/common/models/Discussion';
 
-export class BuoyBump extends Model {}
-Object.assign(BuoyBump.prototype, {
+export class ResurfaceBump extends Model {}
+Object.assign(ResurfaceBump.prototype, {
   source: Model.attribute('source'),
   createdAt: Model.attribute('createdAt', Model.transformDate),
   discussion: Model.hasOne('discussion'),
@@ -11,14 +11,14 @@ Object.assign(BuoyBump.prototype, {
 });
 
 export default [
-  new Extend.Store().add('buoy-bumps', BuoyBump),
+  new Extend.Store().add('resurface-bumps', ResurfaceBump),
   new Extend.Model(Discussion)
-    .attribute('buoyBumpedAt', Model.transformDate)
-    .attribute('buoyCanBump')
-    .attribute('buoyNextBumpAt', Model.transformDate)
-    .attribute('buoyBumpsLeft')
-    .attribute('buoyCooldown')
-    .attribute('buoyCanSchedule')
-    .attribute('buoyCanViewLog')
-    .attribute('buoySchedule'),
+    .attribute('resurfaceBumpedAt', Model.transformDate)
+    .attribute('resurfaceCanBump')
+    .attribute('resurfaceNextBumpAt', Model.transformDate)
+    .attribute('resurfaceBumpsLeft')
+    .attribute('resurfaceCooldown')
+    .attribute('resurfaceCanSchedule')
+    .attribute('resurfaceCanViewLog')
+    .attribute('resurfaceSchedule'),
 ];

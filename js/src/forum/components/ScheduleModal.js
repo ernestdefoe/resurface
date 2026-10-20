@@ -6,7 +6,7 @@ import Switch from 'flarum/common/components/Switch';
 import Select from 'flarum/common/components/Select';
 import Stream from 'flarum/common/utils/Stream';
 
-const t = (key, params) => app.translator.trans(`ernestdefoe-buoy.forum.schedule.${key}`, params);
+const t = (key, params) => app.translator.trans(`ernestdefoe-resurface.forum.schedule.${key}`, params);
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -22,8 +22,8 @@ export default class ScheduleModal extends FormModal {
     super.oninit(vnode);
 
     const discussion = this.attrs.discussion;
-    const plan = discussion.buoySchedule();
-    const every = plan?.every ?? Math.max(24, Math.ceil(discussion.buoyCooldown() || 0));
+    const plan = discussion.resurfaceSchedule();
+    const every = plan?.every ?? Math.max(24, Math.ceil(discussion.resurfaceCooldown() || 0));
     const days = every % 24 === 0;
 
     this.plan = plan;
@@ -38,7 +38,7 @@ export default class ScheduleModal extends FormModal {
   }
 
   className() {
-    return 'BuoyScheduleModal Modal--small';
+    return 'ResurfaceScheduleModal Modal--small';
   }
 
   title() {
@@ -46,14 +46,14 @@ export default class ScheduleModal extends FormModal {
   }
 
   content() {
-    const cooldown = Math.ceil(this.attrs.discussion.buoyCooldown() || 0);
+    const cooldown = Math.ceil(this.attrs.discussion.resurfaceCooldown() || 0);
 
     return (
       <div className="Modal-body">
         <Form className="Form--centered">
           <div className="Form-group">
-            <label for="buoy-at">{t('at_label')}</label>
-            <input id="buoy-at" className="FormControl" type="datetime-local" bidi={this.at} required />
+            <label for="resurface-at">{t('at_label')}</label>
+            <input id="resurface-at" className="FormControl" type="datetime-local" bidi={this.at} required />
           </div>
           <div className="Form-group">
             <Switch state={this.repeat()} onchange={this.repeat}>
@@ -61,10 +61,10 @@ export default class ScheduleModal extends FormModal {
             </Switch>
           </div>
           {this.repeat() && (
-            <div className="Form-group BuoyScheduleModal-every">
-              <label for="buoy-every">{t('every_label')}</label>
-              <div className="BuoyScheduleModal-row">
-                <input id="buoy-every" className="FormControl" type="number" min="1" step="1" bidi={this.amount} required />
+            <div className="Form-group ResurfaceScheduleModal-every">
+              <label for="resurface-every">{t('every_label')}</label>
+              <div className="ResurfaceScheduleModal-row">
+                <input id="resurface-every" className="FormControl" type="number" min="1" step="1" bidi={this.amount} required />
                 <Select
                   value={this.unit()}
                   onchange={this.unit}
@@ -76,9 +76,9 @@ export default class ScheduleModal extends FormModal {
           )}
           {this.repeat() && (
             <div className="Form-group">
-              <label for="buoy-times">{t('times_label')}</label>
+              <label for="resurface-times">{t('times_label')}</label>
               <input
-                id="buoy-times"
+                id="resurface-times"
                 className="FormControl"
                 type="number"
                 min="1"
@@ -118,7 +118,7 @@ export default class ScheduleModal extends FormModal {
     this.loading = true;
 
     this.attrs.discussion
-      .save({ buoySchedule: plan })
+      .save({ resurfaceSchedule: plan })
       .then(() => {
         this.hide();
         app.alerts.show({ type: 'success' }, t(plan ? 'saved_alert' : 'cancelled_alert'));

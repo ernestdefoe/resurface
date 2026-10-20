@@ -2,20 +2,20 @@ import app from 'flarum/admin/app';
 import { Admin } from 'flarum/common/extenders';
 import common from '../common/extend';
 import isExtensionEnabled from 'flarum/admin/utils/isExtensionEnabled';
-import BuoyPage from './BuoyPage';
+import ResurfacePage from './ResurfacePage';
 import GroupLimits from './GroupLimits';
 import TagChoice from './TagChoice';
 
-const t = (key, params) => app.translator.trans(`ernestdefoe-buoy.admin.${key}`, params);
+const t = (key, params) => app.translator.trans(`ernestdefoe-resurface.admin.${key}`, params);
 
 // Callbacks, not values: this module runs before the app has booted.
 export default [
   ...common,
   new Admin()
-    .page(BuoyPage)
+    .page(ResurfacePage)
     .setting(
       () => ({
-        setting: 'ernestdefoe-buoy.cooldown_hours',
+        setting: 'ernestdefoe-resurface.cooldown_hours',
         type: 'number',
         min: 0,
         step: 0.5,
@@ -26,7 +26,7 @@ export default [
     )
     .setting(
       () => ({
-        setting: 'ernestdefoe-buoy.daily_limit',
+        setting: 'ernestdefoe-resurface.daily_limit',
         type: 'number',
         min: 0,
         step: 1,
@@ -38,17 +38,17 @@ export default [
     .customSetting(function () {
       return (
         <GroupLimits
-          setting={this.setting('ernestdefoe-buoy.group_limits', '{}')}
-          defaults={{ cooldown: this.setting('ernestdefoe-buoy.cooldown_hours')(), daily: this.setting('ernestdefoe-buoy.daily_limit')() }}
+          setting={this.setting('ernestdefoe-resurface.group_limits', '{}')}
+          defaults={{ cooldown: this.setting('ernestdefoe-resurface.cooldown_hours')(), daily: this.setting('ernestdefoe-resurface.daily_limit')() }}
         />
       );
     }, 30)
     .customSetting(function () {
-      return isExtensionEnabled('flarum-tags') ? <TagChoice setting={this.setting('ernestdefoe-buoy.tags', '[]')} /> : null;
+      return isExtensionEnabled('flarum-tags') ? <TagChoice setting={this.setting('ernestdefoe-resurface.tags', '[]')} /> : null;
     }, 20)
     .setting(
       () => ({
-        setting: 'ernestdefoe-buoy.log_days',
+        setting: 'ernestdefoe-resurface.log_days',
         type: 'number',
         min: 0,
         step: 1,
@@ -57,7 +57,7 @@ export default [
       }),
       10
     )
-    .permission(() => ({ icon: 'fas fa-circle-up', label: t('permissions.bump'), permission: 'discussion.buoyBump' }), 'reply', 90)
-    .permission(() => ({ icon: 'far fa-clock', label: t('permissions.schedule'), permission: 'discussion.buoySchedule' }), 'reply', 89)
-    .permission(() => ({ icon: 'fas fa-circle-up', label: t('permissions.bump_any'), permission: 'discussion.buoyBumpAny' }), 'moderate', 90),
+    .permission(() => ({ icon: 'fas fa-circle-up', label: t('permissions.bump'), permission: 'discussion.resurfaceBump' }), 'reply', 90)
+    .permission(() => ({ icon: 'far fa-clock', label: t('permissions.schedule'), permission: 'discussion.resurfaceSchedule' }), 'reply', 89)
+    .permission(() => ({ icon: 'fas fa-circle-up', label: t('permissions.bump_any'), permission: 'discussion.resurfaceBumpAny' }), 'moderate', 90),
 ];

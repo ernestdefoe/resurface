@@ -6,5 +6,5 @@ use Flarum\Database\Migration;
 // is what the discussion list sorts by; this column is how the list tells a
 // bump from a reply.
 return Migration::addColumns('discussions', [
-    'buoy_bumped_at' => ['dateTime', 'nullable' => true],
+    'resurface_bumped_at' => ['dateTime', 'nullable' => true],
 ]);

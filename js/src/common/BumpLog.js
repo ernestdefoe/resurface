@@ -7,7 +7,7 @@ import Link from 'flarum/common/components/Link';
 import humanTime from 'flarum/common/helpers/humanTime';
 import username from 'flarum/common/helpers/username';
 
-const t = (key, params) => app.translator.trans(`ernestdefoe-buoy.lib.log.${key}`, params);
+const t = (key, params) => app.translator.trans(`ernestdefoe-resurface.lib.log.${key}`, params);
 
 /**
  * The bump log, newest first, 20 at a time. Attrs: `discussion` (only that
@@ -30,7 +30,7 @@ export default class BumpLog extends Component {
     if (this.attrs.discussion) params.filter = { discussion: this.attrs.discussion.id() };
 
     app.store
-      .find('buoy-bumps', params)
+      .find('resurface-bumps', params)
       .then((results) => {
         this.rows.push(...results);
         this.next = !!results.payload?.links?.next;
@@ -45,12 +45,12 @@ export default class BumpLog extends Component {
     const one = !!this.attrs.discussion;
 
     if (!this.loading && !this.rows.length) {
-      return <p className="BuoyLog-empty">{t('empty')}</p>;
+      return <p className="ResurfaceLog-empty">{t('empty')}</p>;
     }
 
     return (
-      <div className="BuoyLog">
-        <table className="BuoyLog-table">
+      <div className="ResurfaceLog">
+        <table className="ResurfaceLog-table">
           <thead>
             <tr>
               <th>{t('when')}</th>
@@ -78,7 +78,7 @@ export default class BumpLog extends Component {
                       )}
                     </td>
                   )}
-                  <td className="BuoyLog-user">
+                  <td className="ResurfaceLog-user">
                     {user && <Avatar user={user} />} {username(user)}
                   </td>
                   <td>{t(`source.${bump.source()}`)}</td>

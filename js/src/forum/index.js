@@ -13,19 +13,19 @@ import LogModal from './components/LogModal';
 
 // Flarum puts dayjs (with relativeTime and localizedFormat) on window; humanTime
 // turns future times into "just now", so the times ahead use dayjs directly.
-const t = (key, params) => app.translator.trans(`ernestdefoe-buoy.forum.${key}`, params);
+const t = (key, params) => app.translator.trans(`ernestdefoe-resurface.forum.${key}`, params);
 
-app.initializers.add('ernestdefoe-buoy', () => {
+app.initializers.add('ernestdefoe-resurface', () => {
   // On the discussion page only: its payload is the one that says whether,
   // and when, the reader may bump it.
   extend(DiscussionControls, 'userControls', function (items, discussion, context) {
-    if (!(context instanceof DiscussionPage) || !discussion.buoyCanBump()) return;
+    if (!(context instanceof DiscussionPage) || !discussion.resurfaceCanBump()) return;
 
-    const next = discussion.buoyNextBumpAt();
-    const left = discussion.buoyBumpsLeft();
+    const next = discussion.resurfaceNextBumpAt();
+    const left = discussion.resurfaceBumpsLeft();
 
     items.add(
-      'buoyBump',
+      'resurfaceBump',
       next && next > new Date() ? (
         <Button icon="fas fa-circle-up" className="disabled" title={extractText(t('wait_title'))}>
           {t('wait_button', { time: dayjs(next).fromNow() })}
@@ -42,11 +42,11 @@ app.initializers.add('ernestdefoe-buoy', () => {
       -10
     );
 
-    if (discussion.buoyCanSchedule()) {
-      const plan = discussion.buoySchedule();
+    if (discussion.resurfaceCanSchedule()) {
+      const plan = discussion.resurfaceSchedule();
 
       items.add(
-        'buoySchedule',
+        'resurfaceSchedule',
         <Button icon="far fa-clock" onclick={() => app.modal.show(ScheduleModal, { discussion })}>
           {plan ? t('planned_button', { time: dayjs(plan.at).format('lll') }) : t('schedule_button')}
         </Button>,
@@ -56,10 +56,10 @@ app.initializers.add('ernestdefoe-buoy', () => {
   });
 
   extend(DiscussionControls, 'moderationControls', function (items, discussion) {
-    if (!discussion.buoyCanViewLog()) return;
+    if (!discussion.resurfaceCanViewLog()) return;
 
     items.add(
-      'buoyLog',
+      'resurfaceLog',
       <Button icon="fas fa-clock-rotate-left" onclick={() => app.modal.show(LogModal, { discussion })}>
         {t('log_button')}
       </Button>
@@ -69,13 +69,13 @@ app.initializers.add('ernestdefoe-buoy', () => {
   // In the list, a bump is not a reply: say "bumped", not "<last poster> replied".
   override(TerminalPost.prototype, 'view', function (original) {
     const discussion = this.attrs.discussion;
-    const bumpedAt = discussion.buoyBumpedAt();
+    const bumpedAt = discussion.resurfaceBumpedAt();
     const lastPostedAt = discussion.lastPostedAt();
 
     if (!this.attrs.lastPost || !bumpedAt || (lastPostedAt && lastPostedAt > bumpedAt)) return original();
 
     return (
-      <span className="BuoyBumped">
+      <span className="ResurfaceBumped">
         <Icon name="fas fa-circle-up" /> {t('bumped_text', { ago: humanTime(bumpedAt) })}
       </span>
     );

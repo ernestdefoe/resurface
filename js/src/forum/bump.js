@@ -7,7 +7,7 @@ import app from 'flarum/forum/app';
  * it: a tag's or a filter's list never gains a discussion it does not hold.
  */
 export default function bump(discussion) {
-  return discussion.save({ buoyBump: true }).then(() => {
+  return discussion.save({ resurfaceBump: true }).then(() => {
     const list = app.discussions;
     const sort = list?.currentSort();
     const listed = list?.getPages().some((page) => page.items.some((item) => item.id() === discussion.id()));
@@ -17,6 +17,6 @@ export default function bump(discussion) {
       list.addDiscussion(discussion);
     }
 
-    app.alerts.show({ type: 'success' }, app.translator.trans('ernestdefoe-buoy.forum.bumped_alert'));
+    app.alerts.show({ type: 'success' }, app.translator.trans('ernestdefoe-resurface.forum.bumped_alert'));
   });
 }

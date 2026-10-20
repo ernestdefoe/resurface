@@ -1,4 +1,4 @@
-name: Buoy PHP
+name: Resurface PHP
 
 on: [workflow_dispatch, push, pull_request]
 

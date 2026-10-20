@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Search;
+namespace Ernestdefoe\Resurface\Search;
 
 use Flarum\Search\Database\DatabaseSearchState;
 use Flarum\Search\Filter\FilterInterface;
@@ -24,6 +24,6 @@ class DiscussionFilter implements FilterInterface
     public function filter(SearchState $state, string|array $value, bool $negate): void
     {
         /** @var DatabaseSearchState $state */
-        $state->getQuery()->where('buoy_bumps.discussion_id', $negate ? '!=' : '=', $this->asInt($value));
+        $state->getQuery()->where('resurface_bumps.discussion_id', $negate ? '!=' : '=', $this->asInt($value));
     }
 }

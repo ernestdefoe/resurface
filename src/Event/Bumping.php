@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Event;
+namespace Ernestdefoe\Resurface\Event;
 
 use Flarum\Discussion\Discussion;
 use Flarum\User\User;

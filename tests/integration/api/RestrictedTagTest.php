@@ -1,16 +1,16 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Tests\integration\api;
+namespace Ernestdefoe\Resurface\Tests\integration\api;
 
-use Ernestdefoe\Buoy\Tests\integration\BuoyTestCase;
+use Ernestdefoe\Resurface\Tests\integration\ResurfaceTestCase;
 use Flarum\Group\Group;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Discussion 6 sits in tag 2, restricted here. Flarum/tags then asks for the
- * tag's own permissions: tagN.discussion.buoyBump and friends.
+ * tag's own permissions: tagN.discussion.resurfaceBump and friends.
  */
-class RestrictedTagTest extends BuoyTestCase
+class RestrictedTagTest extends ResurfaceTestCase
 {
     protected function setUp(): void
     {
@@ -21,9 +21,9 @@ class RestrictedTagTest extends BuoyTestCase
             'group_user' => [['user_id' => 3, 'group_id' => 5]],
             'group_permission' => [
                 ['group_id' => 5, 'permission' => 'tag2.viewForum'],
-                ['group_id' => 5, 'permission' => 'tag2.discussion.buoyBumpAny'],
+                ['group_id' => 5, 'permission' => 'tag2.discussion.resurfaceBumpAny'],
                 ['group_id' => Group::MEMBER_ID, 'permission' => 'tag2.viewForum'],
-                ['group_id' => Group::MODERATOR_ID, 'permission' => 'tag2.discussion.buoyBumpAny'],
+                ['group_id' => Group::MODERATOR_ID, 'permission' => 'tag2.discussion.resurfaceBumpAny'],
             ],
         ]);
     }
@@ -60,7 +60,7 @@ class RestrictedTagTest extends BuoyTestCase
     #[Test]
     public function owners_with_the_tags_own_bump_permission_bump_there(): void
     {
-        $this->prepareDatabase(['group_permission' => [['group_id' => Group::MEMBER_ID, 'permission' => 'tag2.discussion.buoyBump']]]);
+        $this->prepareDatabase(['group_permission' => [['group_id' => Group::MEMBER_ID, 'permission' => 'tag2.discussion.resurfaceBump']]]);
         $this->restrict();
 
         $this->assertEquals(200, $this->bump(6, 2)->getStatusCode());
@@ -72,8 +72,8 @@ class RestrictedTagTest extends BuoyTestCase
         $this->restrict();
 
         // Tag-only staff: can bump there, but the log is forum-wide.
-        $this->assertTrue($this->show(6, 3)['data']['attributes']['buoyCanBump']);
-        $this->assertFalse($this->show(6, 3)['data']['attributes']['buoyCanViewLog']);
-        $this->assertTrue($this->show(6, 4)['data']['attributes']['buoyCanViewLog']);
+        $this->assertTrue($this->show(6, 3)['data']['attributes']['resurfaceCanBump']);
+        $this->assertFalse($this->show(6, 3)['data']['attributes']['resurfaceCanViewLog']);
+        $this->assertTrue($this->show(6, 4)['data']['attributes']['resurfaceCanViewLog']);
     }
 }

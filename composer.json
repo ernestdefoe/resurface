@@ -1,5 +1,5 @@
 {
-    "name": "ernestdefoe/buoy",
+    "name": "ernestdefoe/resurface",
     "description": "Bump a discussion back to the top without replying: manual bumps with per-group cooldowns and daily limits, per-tag control, scheduled and automatic bumps, and a bump log for staff.",
     "keywords": ["flarum", "bump", "bumping", "classifieds", "marketplace", "scheduled"],
     "type": "flarum-extension",
@@ -11,8 +11,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/ernestdefoe/buoy/issues",
-        "source": "https://github.com/ernestdefoe/buoy"
+        "issues": "https://github.com/ernestdefoe/resurface/issues",
+        "source": "https://github.com/ernestdefoe/resurface"
     },
     "funding": [
         {
@@ -26,7 +26,7 @@
     },
     "extra": {
         "flarum-extension": {
-            "title": "Buoy",
+            "title": "Resurface",
             "category": "feature",
             "icon": {
                 "name": "fas fa-circle-up",
@@ -39,12 +39,12 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Ernestdefoe\\Buoy\\": "src/"
+            "Ernestdefoe\\Resurface\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Ernestdefoe\\Buoy\\Tests\\": "tests/"
+            "Ernestdefoe\\Resurface\\Tests\\": "tests/"
         }
     },
     "require-dev": {

@@ -2,7 +2,7 @@ import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 
-const t = (key, params) => app.translator.trans(`ernestdefoe-buoy.admin.tags.${key}`, params);
+const t = (key, params) => app.translator.trans(`ernestdefoe-resurface.admin.tags.${key}`, params);
 
 /**
  * The tags members may bump in, kept as a JSON list of ids; none ticked is
@@ -35,13 +35,13 @@ export default class TagChoice extends Component {
     };
 
     return (
-      <div className="Form-group BuoyTagChoice">
+      <div className="Form-group ResurfaceTagChoice">
         <label>{t('label')}</label>
         <div className="helpText">{t('help')}</div>
         {this.loading ? (
           <LoadingIndicator display="inline" />
         ) : (
-          <div className="BuoyTagChoice-list">
+          <div className="ResurfaceTagChoice-list">
             {app.store
               .all('tags')
               .sort((a, b) => (a.position() ?? 999) - (b.position() ?? 999))

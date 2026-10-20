@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Listener;
+namespace Ernestdefoe\Resurface\Listener;
 
 use Flarum\Discussion\Discussion;
 
@@ -13,7 +13,7 @@ class KeepBump
 {
     public function __invoke(Discussion $discussion): void
     {
-        $bumpedAt = $discussion->buoy_bumped_at;
+        $bumpedAt = $discussion->resurface_bumped_at;
 
         if ($bumpedAt && $discussion->last_posted_at && $discussion->isDirty('last_posted_at') && $discussion->last_posted_at->lt($bumpedAt)) {
             $discussion->last_posted_at = $bumpedAt;

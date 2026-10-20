@@ -1,12 +1,12 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Console;
+namespace Ernestdefoe\Resurface\Console;
 
 use Carbon\Carbon;
-use Ernestdefoe\Buoy\Bump;
-use Ernestdefoe\Buoy\Bumper;
-use Ernestdefoe\Buoy\Schedule;
-use Ernestdefoe\Buoy\Settings;
+use Ernestdefoe\Resurface\Bump;
+use Ernestdefoe\Resurface\Bumper;
+use Ernestdefoe\Resurface\Schedule;
+use Ernestdefoe\Resurface\Settings;
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\ValidationException;
 use Flarum\Settings\SettingsRepositoryInterface;
@@ -27,7 +27,7 @@ class RunSchedules extends Command
     private const PRUNE_CHUNK = 1000;
     private const PRUNE_ROUNDS = 5;
 
-    protected $signature = 'buoy:run';
+    protected $signature = 'resurface:run';
 
     protected $description = 'Make the scheduled and automatic bumps that are due, and trim the bump log.';
 
@@ -68,7 +68,7 @@ class RunSchedules extends Command
 
         // The plan needs its maker to still be allowed to plan here (the
         // permission can be taken away, or they can leave the group).
-        if (! $user->can('buoySchedule', $discussion)) {
+        if (! $user->can('resurfaceSchedule', $discussion)) {
             $schedule->delete();
 
             return false;
@@ -89,7 +89,7 @@ class RunSchedules extends Command
         } catch (\Throwable $e) {
             // Never let one plan stop the rest, or sit at the head of the
             // queue failing every minute.
-            $log->error("[buoy] Planned bump of discussion $discussion->id failed: {$e->getMessage()}");
+            $log->error("[resurface] Planned bump of discussion $discussion->id failed: {$e->getMessage()}");
         }
 
         if (! $schedule->interval_hours || ($at && $schedule->remaining === 1)) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Tests\integration;
+namespace Ernestdefoe\Resurface\Tests\integration;
 
 use Carbon\Carbon;
 use Flarum\Discussion\Discussion;
@@ -17,7 +17,7 @@ use Psr\Http\Message\ResponseInterface;
  *  1 owner's, tag 1 · 2 owner's, active an hour ago · 3 member 3's
  *  4 owner's, locked · 5 owner's, hidden · 6 owner's, tag 2 · 7 owner's, private
  */
-abstract class BuoyTestCase extends TestCase
+abstract class ResurfaceTestCase extends TestCase
 {
     use RetrievesAuthorizedUsers;
 
@@ -27,7 +27,7 @@ abstract class BuoyTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->extension('flarum-tags', 'flarum-lock', 'ernestdefoe-buoy');
+        $this->extension('flarum-tags', 'flarum-lock', 'ernestdefoe-resurface');
 
         $this->old = Carbon::now()->subDays(3)->startOfSecond();
         $recent = Carbon::now()->subHour()->startOfSecond();
@@ -91,7 +91,7 @@ abstract class BuoyTestCase extends TestCase
 
     protected function bump(int $discussion, ?int $as): ResponseInterface
     {
-        return $this->patch($discussion, ['buoyBump' => true], $as);
+        return $this->patch($discussion, ['resurfaceBump' => true], $as);
     }
 
     protected function show(int $discussion, int $as): array
@@ -99,7 +99,7 @@ abstract class BuoyTestCase extends TestCase
         return $this->json($this->send($this->request('GET', "/api/discussions/$discussion", ['authenticatedAs' => $as])));
     }
 
-    /** @return object{last_posted_at: string, buoy_bumped_at: string|null, last_post_id: int, last_post_number: int, last_posted_user_id: int} */
+    /** @return object{last_posted_at: string, resurface_bumped_at: string|null, last_post_id: int, last_post_number: int, last_posted_user_id: int} */
     protected function row(int $discussion): object
     {
         return $this->database()->table('discussions')->where('id', $discussion)->first();
@@ -107,7 +107,7 @@ abstract class BuoyTestCase extends TestCase
 
     protected function bumps(?int $discussion = null): int
     {
-        return $this->database()->table('buoy_bumps')->when($discussion, fn ($q) => $q->where('discussion_id', $discussion))->count();
+        return $this->database()->table('resurface_bumps')->when($discussion, fn ($q) => $q->where('discussion_id', $discussion))->count();
     }
 
     /** A setting changed after the app has booted. */

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 
 // At most one plan per discussion: one bump at a set time, or a bump every
 // `interval_hours` from then on, `remaining` times (null: until cancelled).
-return Migration::createTable('buoy_schedules', function (Blueprint $table) {
+return Migration::createTable('resurface_schedules', function (Blueprint $table) {
     $table->increments('id');
     $table->unsignedInteger('discussion_id')->unique();
     $table->unsignedInteger('user_id');

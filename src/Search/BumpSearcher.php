@@ -1,8 +1,8 @@
 <?php
 
-namespace Ernestdefoe\Buoy\Search;
+namespace Ernestdefoe\Resurface\Search;
 
-use Ernestdefoe\Buoy\Bump;
+use Ernestdefoe\Resurface\Bump;
 use Flarum\Discussion\Discussion;
 use Flarum\Search\Database\AbstractSearcher;
 use Flarum\User\User;
@@ -18,7 +18,7 @@ class BumpSearcher extends AbstractSearcher
     public function getQuery(User $actor): Builder
     {
         return Bump::query()
-            ->select('buoy_bumps.*')
-            ->whereIn('buoy_bumps.discussion_id', Discussion::whereVisibleTo($actor)->select('discussions.id'));
+            ->select('resurface_bumps.*')
+            ->whereIn('resurface_bumps.discussion_id', Discussion::whereVisibleTo($actor)->select('discussions.id'));
     }
 }

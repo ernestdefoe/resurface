@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Buoy;
+namespace Ernestdefoe\Resurface;
 
 use Carbon\Carbon;
 use Flarum\Database\AbstractModel;
@@ -25,7 +25,7 @@ class Bump extends AbstractModel
     public const SCHEDULED = 'scheduled';
     public const AUTO = 'auto';
 
-    protected $table = 'buoy_bumps';
+    protected $table = 'resurface_bumps';
 
     public $timestamps = false;
 

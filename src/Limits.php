@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Buoy;
+namespace Ernestdefoe\Resurface;
 
 use Carbon\Carbon;
 use Flarum\Group\Group;
