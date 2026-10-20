@@ -31,8 +31,10 @@ class DiscussionPolicy extends AbstractPolicy
             return $this->deny();
         }
 
+        // Force: in a restricted tag, flarum/tags would otherwise deny
+        // `buoyBump` to staff who hold only the tag's "bump any" permission.
         if ($actor->can('buoyBumpAny', $discussion)) {
-            return $this->allow();
+            return $this->forceAllow();
         }
 
         if ((int) $discussion->user_id !== (int) $actor->id || ! $this->open($discussion) || ! $this->inAllowedTag($discussion)) {
@@ -49,7 +51,7 @@ class DiscussionPolicy extends AbstractPolicy
         }
 
         if ($actor->can('buoyBumpAny', $discussion)) {
-            return $this->allow();
+            return $this->forceAllow();
         }
 
         return null;
