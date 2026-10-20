@@ -27,7 +27,10 @@ export default class ScheduleModal extends FormModal {
     const days = every % 24 === 0;
 
     this.plan = plan;
-    this.at = Stream(local(plan ? new Date(plan.at) : new Date(Date.now() + 3600 * 1000)));
+    // A plan's time can already be past (its run is due, or the scheduler was
+    // down): offer the next hour instead, which the server accepts.
+    const soon = Date.now() + 3600 * 1000;
+    this.at = Stream(local(new Date(plan && new Date(plan.at).getTime() > Date.now() ? plan.at : soon)));
     this.repeat = Stream(!!plan?.every);
     this.amount = Stream(String(days ? every / 24 : every));
     this.unit = Stream(days ? 'days' : 'hours');
