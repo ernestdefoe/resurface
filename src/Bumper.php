@@ -68,42 +68,54 @@ class Bumper
             throw new PermissionDeniedException();
         }
 
-        $status = $this->status($actor, $discussion);
-        if ($status['nextAt']) {
-            throw $this->tooSoon();
-        }
+        // One transaction, the member's own row locked first: two bumps at
+        // once (two tabs, two discussions) take turns, so the daily limit
+        // holds; and if anything fails, whatever a Bumping listener charged
+        // rolls back with it. The lock must be the transaction's first read:
+        // MySQL's snapshot then starts after the other bump has committed.
+        $bump = $this->db->transaction(function () use ($actor, $discussion, $source) {
+            $this->db->table('users')->where('id', $actor->id)->lockForUpdate()->value('id');
 
-        $this->events->dispatch(new Bumping($discussion, $actor, $source));
-
-        $now = Carbon::now()->startOfSecond();
-
-        $query = Discussion::query()->whereKey($discussion->id);
-        $values = ['last_posted_at' => $now, 'buoy_bumped_at' => $now];
-        if ($status['cooldown'] > 0) {
-            // Checked again in the update itself, so two bumps at once (two
-            // tabs, a double click) cannot both get through. Only here does
-            // "no row updated" mean "too soon": MySQL counts rows CHANGED, so
-            // an unconditional bump in the same second as the last reports 0.
-            $query->where('last_posted_at', '<=', $now->copy()->subMinutes((int) ceil($status['cooldown'] * 60)));
-            if (! $query->update($values)) {
+            $status = $this->status($actor, $discussion);
+            if ($status['nextAt']) {
                 throw $this->tooSoon();
             }
-        } else {
-            $query->update($values);
-        }
 
-        $discussion->last_posted_at = $now;
-        $discussion->buoy_bumped_at = $now;
+            $this->events->dispatch(new Bumping($discussion, $actor, $source));
+
+            $now = Carbon::now()->startOfSecond();
+
+            $query = Discussion::query()->whereKey($discussion->id);
+            $values = ['last_posted_at' => $now, 'buoy_bumped_at' => $now];
+            if ($status['cooldown'] > 0) {
+                // Checked again in the update itself, so the same discussion
+                // bumped by its owner and by staff at once cannot both pass.
+                // Only here does "no row updated" mean "too soon": MySQL counts
+                // rows CHANGED, so an unconditional bump in the same second as
+                // the last reports 0.
+                $query->where('last_posted_at', '<=', $now->copy()->subMinutes((int) ceil($status['cooldown'] * 60)));
+                if (! $query->update($values)) {
+                    throw $this->tooSoon();
+                }
+            } else {
+                $query->update($values);
+            }
+
+            $bump = new Bump();
+            $bump->discussion_id = $discussion->id;
+            $bump->user_id = $actor->id;
+            $bump->source = $source;
+            $bump->created_at = $now;
+            $bump->save();
+
+            $this->updateTags($discussion, $now);
+
+            return $bump;
+        });
+
+        $discussion->last_posted_at = $bump->created_at;
+        $discussion->buoy_bumped_at = $bump->created_at;
         $discussion->syncOriginalAttributes(['last_posted_at', 'buoy_bumped_at']);
-
-        $bump = new Bump();
-        $bump->discussion_id = $discussion->id;
-        $bump->user_id = $actor->id;
-        $bump->source = $source;
-        $bump->created_at = $now;
-        $bump->save();
-
-        $this->updateTags($discussion, $now);
 
         $this->events->dispatch(new Bumped($discussion, $actor, $bump));
 
