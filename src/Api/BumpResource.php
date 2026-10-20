@@ -32,6 +32,9 @@ class BumpResource extends AbstractDatabaseResource
             Endpoint\Index::make()
                 ->can('discussion.buoyBumpAny')
                 ->defaultInclude(['discussion', 'user'])
+                // What the included discussions' and users' own fields read
+                // (read state, groups); tags adds its relation in extend.php.
+                ->eagerLoad(['discussion.state', 'user.groups'])
                 ->defaultSort('-createdAt')
                 ->paginate(20, 50),
         ];

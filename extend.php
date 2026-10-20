@@ -8,6 +8,7 @@ use Ernestdefoe\Buoy\Console\RunSchedules;
 use Ernestdefoe\Buoy\Search\BumpSearcher;
 use Ernestdefoe\Buoy\Search\DiscussionFilter;
 use Ernestdefoe\Buoy\Settings;
+use Flarum\Api\Endpoint;
 use Flarum\Api\Resource\DiscussionResource;
 use Flarum\Discussion\Discussion;
 use Flarum\Extend;
@@ -39,6 +40,12 @@ return [
         ->fields(Api\DiscussionFields::class),
 
     new Extend\ApiResource(Api\BumpResource::class),
+
+    (new Extend\Conditional())
+        ->whenExtensionEnabled('flarum-tags', fn () => [
+            (new Extend\ApiResource(Api\BumpResource::class))
+                ->endpoint('index', fn (Endpoint\Index $endpoint) => $endpoint->eagerLoad(['discussion.tags'])),
+        ]),
 
     (new Extend\SearchDriver(DatabaseSearchDriver::class))
         ->addSearcher(Bump::class, BumpSearcher::class)

@@ -56,4 +56,22 @@ class LogTest extends BuoyTestCase
 
         $this->assertSame(['1'], array_column($body['data'], 'id'));
     }
+
+    #[Test]
+    public function a_full_page_costs_no_query_per_row(): void
+    {
+        // flarum/testing fails the request when one query shape repeats
+        // past its threshold: what a missing eager load looks like here.
+        $now = Carbon::now();
+        for ($id = 20; $id < 32; $id++) {
+            $this->database()->table('discussions')->insert(['id' => $id, 'title' => "Listing $id", 'slug' => "listing-$id", 'user_id' => 2, 'created_at' => $now, 'last_posted_at' => $now, 'comment_count' => 1, 'is_private' => 0]);
+            $this->database()->table('discussion_tag')->insert(['discussion_id' => $id, 'tag_id' => 1]);
+            $this->database()->table('buoy_bumps')->insert(['discussion_id' => $id, 'user_id' => 2, 'source' => 'manual', 'created_at' => $now]);
+        }
+
+        $response = $this->log(4);
+
+        $this->assertEquals(200, $response->getStatusCode(), (string) $response->getBody());
+        $this->assertCount(14, $this->json($response)['data']);
+    }
 }
