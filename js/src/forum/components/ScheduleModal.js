@@ -1,0 +1,129 @@
+import app from 'flarum/forum/app';
+import FormModal from 'flarum/common/components/FormModal';
+import Form from 'flarum/common/components/Form';
+import Button from 'flarum/common/components/Button';
+import Switch from 'flarum/common/components/Switch';
+import Select from 'flarum/common/components/Select';
+import Stream from 'flarum/common/utils/Stream';
+
+const t = (key, params) => app.translator.trans(`ernestdefoe-buoy.forum.schedule.${key}`, params);
+
+const pad = (n) => String(n).padStart(2, '0');
+
+/** A Date as a datetime-local value, in the browser's time zone. */
+const local = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+/**
+ * Plan bumps: one at a set time, or one every so many hours or days from then,
+ * a number of times or until cancelled.
+ */
+export default class ScheduleModal extends FormModal {
+  oninit(vnode) {
+    super.oninit(vnode);
+
+    const discussion = this.attrs.discussion;
+    const plan = discussion.buoySchedule();
+    const every = plan?.every ?? Math.max(24, Math.ceil(discussion.buoyCooldown() || 0));
+    const days = every % 24 === 0;
+
+    this.plan = plan;
+    this.at = Stream(local(plan ? new Date(plan.at) : new Date(Date.now() + 3600 * 1000)));
+    this.repeat = Stream(!!plan?.every);
+    this.amount = Stream(String(days ? every / 24 : every));
+    this.unit = Stream(days ? 'days' : 'hours');
+    this.times = Stream(plan?.times ? String(plan.times) : '');
+  }
+
+  className() {
+    return 'BuoyScheduleModal Modal--small';
+  }
+
+  title() {
+    return t('title');
+  }
+
+  content() {
+    const cooldown = Math.ceil(this.attrs.discussion.buoyCooldown() || 0);
+
+    return (
+      <div className="Modal-body">
+        <Form className="Form--centered">
+          <div className="Form-group">
+            <label for="buoy-at">{t('at_label')}</label>
+            <input id="buoy-at" className="FormControl" type="datetime-local" bidi={this.at} required />
+          </div>
+          <div className="Form-group">
+            <Switch state={this.repeat()} onchange={this.repeat}>
+              {t('repeat_label')}
+            </Switch>
+          </div>
+          {this.repeat() && (
+            <div className="Form-group BuoyScheduleModal-every">
+              <label for="buoy-every">{t('every_label')}</label>
+              <div className="BuoyScheduleModal-row">
+                <input id="buoy-every" className="FormControl" type="number" min="1" step="1" bidi={this.amount} required />
+                <Select
+                  value={this.unit()}
+                  onchange={this.unit}
+                  options={{ hours: t('hours', { count: Number(this.amount()) || 0 }), days: t('days', { count: Number(this.amount()) || 0 }) }}
+                />
+              </div>
+              {cooldown > 0 && <p className="helpText">{t('every_help', { hours: cooldown })}</p>}
+            </div>
+          )}
+          {this.repeat() && (
+            <div className="Form-group">
+              <label for="buoy-times">{t('times_label')}</label>
+              <input
+                id="buoy-times"
+                className="FormControl"
+                type="number"
+                min="1"
+                max="999"
+                step="1"
+                placeholder={t('times_placeholder')}
+                bidi={this.times}
+              />
+            </div>
+          )}
+          {cooldown > 0 && <p className="helpText">{t('limits_help')}</p>}
+          <div className="Form-group Form-controls">
+            <Button className="Button Button--primary Button--block" type="submit" loading={this.loading}>
+              {t('save_button')}
+            </Button>
+            {this.plan && (
+              <Button className="Button Button--block Button--danger" type="button" disabled={this.loading} onclick={() => this.send(null)}>
+                {t('cancel_button')}
+              </Button>
+            )}
+          </div>
+        </Form>
+      </div>
+    );
+  }
+
+  onsubmit(e) {
+    e.preventDefault();
+
+    const every = this.repeat() ? parseInt(this.amount(), 10) * (this.unit() === 'days' ? 24 : 1) : null;
+    const times = this.repeat() && this.times() ? parseInt(this.times(), 10) : null;
+
+    this.send({ at: new Date(this.at()).toISOString(), every, times });
+  }
+
+  send(plan) {
+    this.loading = true;
+
+    this.attrs.discussion
+      .save({ buoySchedule: plan })
+      .then(() => {
+        this.hide();
+        app.alerts.show({ type: 'success' }, t(plan ? 'saved_alert' : 'cancelled_alert'));
+      })
+      .catch(() => {})
+      .finally(() => {
+        this.loading = false;
+        m.redraw();
+      });
+  }
+}
