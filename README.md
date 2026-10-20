@@ -11,6 +11,20 @@ A [Flarum](https://flarum.org) 2 extension. Members bump a discussion back to th
 - **Bump log for staff**: every bump, who made it and how (by hand, planned, repeating). It's in the admin page and in each discussion's menu.
 - **Lists say "bumped 5 minutes ago"** rather than claiming someone replied.
 
+## Screenshots
+
+| The list after a bump | The discussion menu |
+| --- | --- |
+| ![A bumped listing at the top of the list, reading "bumped a few seconds ago"](.github/screenshots/list.png) | ![Bump to the top and Plan bumps in the discussion menu](.github/screenshots/controls.png) |
+| **Planning bumps** | **Bump history (staff)** |
+| ![The bump planner: a time, a repeat every 1 day, 5 times](.github/screenshots/plan-modal.png) | ![The bump history of one discussion](.github/screenshots/history-modal.png) |
+
+![The admin page: cooldown, bumps per 24 hours, limits per group, tags, log retention, permissions and the bump log](.github/screenshots/admin.png)
+
+On phones the bump and plan items sit in the discussion's menu sheet:
+
+![The discussion menu on an iPhone](.github/screenshots/iphone-menu.png)
+
 ## Installation
 
 ```sh
