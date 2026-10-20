@@ -78,13 +78,18 @@ class Bumper
         $now = Carbon::now()->startOfSecond();
 
         $query = Discussion::query()->whereKey($discussion->id);
+        $values = ['last_posted_at' => $now, 'buoy_bumped_at' => $now];
         if ($status['cooldown'] > 0) {
             // Checked again in the update itself, so two bumps at once (two
-            // tabs, a double click) cannot both get through.
+            // tabs, a double click) cannot both get through. Only here does
+            // "no row updated" mean "too soon": MySQL counts rows CHANGED, so
+            // an unconditional bump in the same second as the last reports 0.
             $query->where('last_posted_at', '<=', $now->copy()->subMinutes((int) ceil($status['cooldown'] * 60)));
-        }
-        if (! $query->update(['last_posted_at' => $now, 'buoy_bumped_at' => $now])) {
-            throw $this->tooSoon();
+            if (! $query->update($values)) {
+                throw $this->tooSoon();
+            }
+        } else {
+            $query->update($values);
         }
 
         $discussion->last_posted_at = $now;
