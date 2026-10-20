@@ -5,6 +5,7 @@ namespace Ernestdefoe\Buoy\Tests\integration\console;
 use Carbon\Carbon;
 use Ernestdefoe\Buoy\Settings;
 use Ernestdefoe\Buoy\Tests\integration\BuoyTestCase;
+use Flarum\Group\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -12,6 +13,14 @@ use Symfony\Component\Console\Output\BufferedOutput;
 
 class RunSchedulesTest extends BuoyTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Members may plan bumps here; one test takes it away.
+        $this->prepareDatabase(['group_permission' => [['permission' => 'discussion.buoySchedule', 'group_id' => Group::MEMBER_ID]]]);
+    }
+
     private function runBuoy(): string
     {
         $this->app();
@@ -188,5 +197,17 @@ class RunSchedulesTest extends BuoyTestCase
         $this->runBuoy();
 
         $this->assertSame(1, $this->bumps());
+    }
+
+    #[Test]
+    public function a_plan_ends_when_its_maker_may_no_longer_plan(): void
+    {
+        $this->database()->table('group_permission')->where('permission', 'discussion.buoySchedule')->delete();
+        $this->plan(1, 2, Carbon::now()->subMinute(), 24);
+
+        $this->runBuoy();
+
+        $this->assertSame(0, $this->bumps());
+        $this->assertNull($this->planRow(1));
     }
 }

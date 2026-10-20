@@ -66,6 +66,14 @@ class RunSchedules extends Command
             return false;
         }
 
+        // The plan needs its maker to still be allowed to plan here (the
+        // permission can be taken away, or they can leave the group).
+        if (! $user->can('buoySchedule', $discussion)) {
+            $schedule->delete();
+
+            return false;
+        }
+
         $at = null;
 
         try {
