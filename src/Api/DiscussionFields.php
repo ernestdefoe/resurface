@@ -34,7 +34,10 @@ class DiscussionFields
     /** @return array<\Tobyz\JsonApiServer\Schema\Field\Field> */
     public function __invoke(): array
     {
-        $single = fn (Discussion $d, Context $c) => $c->showing(DiscussionResource::class) || $c->updating(DiscussionResource::class);
+        // A discussion page, or a save that touched Buoy: not the read
+        // tracking PATCH that fires as people scroll.
+        $single = fn (Discussion $d, Context $c) => $c->showing(DiscussionResource::class)
+            || ($c->updating(DiscussionResource::class) && $this->touchesBuoy($c));
 
         return [
             Schema\DateTime::make('buoyBumpedAt')
@@ -66,9 +69,10 @@ class DiscussionFields
                 ->visible($single)
                 ->get(fn (Discussion $d, Context $c) => $this->state($d, $c)['canSchedule']),
 
+            // The log is forum-wide, so it takes the global permission.
             Schema\Boolean::make('buoyCanViewLog')
                 ->visible($single)
-                ->get(fn (Discussion $d, Context $c) => $c->getActor()->can('buoyBumpAny', $d)),
+                ->get(fn (Discussion $d, Context $c) => $c->getActor()->hasPermission('discussion.buoyBumpAny')),
 
             Schema\Boolean::make('buoyBump')
                 ->hidden()
@@ -93,6 +97,13 @@ class DiscussionFields
                     unset($this->memo[$d]);
                 }),
         ];
+    }
+
+    private function touchesBuoy(Context $c): bool
+    {
+        $attributes = $c->request->getParsedBody()['data']['attributes'] ?? null;
+
+        return is_array($attributes) && (array_key_exists('buoyBump', $attributes) || array_key_exists('buoySchedule', $attributes));
     }
 
     /** @return array{canBump: bool, canSchedule: bool, status: array<string, mixed>|null} */
@@ -169,7 +180,7 @@ class DiscussionFields
         }
 
         if ($errors) {
-            throw new ValidationException($errors);
+            throw new ValidationException(['buoySchedule' => implode(' ', array_unique($errors))]);
         }
 
         $schedule = Schedule::query()->where('discussion_id', $d->id)->first() ?? new Schedule();

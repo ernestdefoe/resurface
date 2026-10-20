@@ -242,4 +242,32 @@ class BumpTest extends BuoyTestCase
         $this->assertGreaterThanOrEqual($row->buoy_bumped_at, $row->last_posted_at);
         $this->assertEquals(3, (int) $row->last_posted_user_id);
     }
+
+    #[Test]
+    public function a_cleared_setting_falls_back_to_the_default(): void
+    {
+        // An admin emptying the box must not mean "no cooldown, no limit".
+        $this->put(Settings::COOLDOWN, '');
+        $this->put(Settings::DAILY, '');
+
+        $this->assertEquals(422, $this->bump(2, 2)->getStatusCode());
+        $this->assertEquals(200, $this->bump(1, 2)->getStatusCode());
+        $this->assertEquals(422, $this->bump(6, 2)->getStatusCode());
+    }
+
+    #[Test]
+    public function read_tracking_saves_cost_buoy_nothing(): void
+    {
+        $queries = [];
+        $this->app();
+        $this->database()->listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
+
+        $response = $this->patch(1, ['lastReadPostNumber' => 1], 2);
+
+        $this->assertEquals(200, $response->getStatusCode(), (string) $response->getBody());
+        $this->assertSame([], array_values(array_filter($queries, fn ($sql) => str_contains($sql, 'buoy_'))));
+        $this->assertArrayNotHasKey('buoyCanBump', $this->json($response)['data']['attributes']);
+    }
 }

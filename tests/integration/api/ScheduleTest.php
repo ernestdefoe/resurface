@@ -135,4 +135,15 @@ class ScheduleTest extends BuoyTestCase
         $this->assertArrayNotHasKey('buoySchedule', $this->show(1, 3)['data']['attributes']);
         $this->assertNotNull($this->show(1, 4)['data']['attributes']['buoySchedule']);
     }
+
+    #[Test]
+    public function errors_point_at_the_plan(): void
+    {
+        $this->allowMembers();
+
+        $response = $this->patch(1, ['buoySchedule' => ['at' => 'soon']], 2);
+
+        $this->assertEquals(422, $response->getStatusCode());
+        $this->assertSame('/data/attributes/buoySchedule', $this->json($response)['errors'][0]['source']['pointer']);
+    }
 }
