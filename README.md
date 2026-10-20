@@ -43,6 +43,8 @@ php flarum cache:clear
 
 Owners can't bump a discussion that is locked or waiting for approval. Nobody can bump a hidden one.
 
+**Restricted tags** (with Tags) take the permissions per tag, as Flarum does everywhere else. A group needs the tag's own "Bump own discussions" (and "Plan bumps") to bump its discussions there. Staff need the tag's "Bump any discussion". The bump log covers the whole forum, so it needs the global "Bump any discussion" permission.
+
 ## Limits
 
 - **Cooldown (hours)** counts from the discussion's **last activity**: its last reply or its last bump. Bumping a discussion that is already near the top does nothing, so it's always the time since activity that counts. Default: 24.
@@ -54,7 +56,9 @@ Owners can't bump a discussion that is locked or waiting for approval. Nobody ca
 A plan runs as the member who saved it, with that member's permissions and limits **at the time each bump is due**.
 
 - If it's too soon or the member has used their bumps, that run is skipped. A repeating plan tries again a full interval later. A one-off plan ends.
-- If the member can no longer bump the discussion (it was locked, hidden or made private, they lost the permission, or the tag is no longer allowed), the plan ends.
+- If the member can no longer bump or plan bumps on the discussion (it was locked, hidden or made private, they lost a permission or were suspended, or the tag is no longer allowed), the plan ends.
+- A repeating plan with a count ends after that many bumps actually made. Skipped runs don't count.
+- The discussion's owner can cancel or replace a plan a moderator made on it.
 - Repeats can't be closer together than the member's cooldown. Staff have no such limit.
 - Missed runs (the scheduler was down) are not made up in a burst. The next bump comes one interval after the scheduler is back.
 - When a moderator saves a plan on someone else's discussion, the plan becomes the moderator's.
