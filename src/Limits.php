@@ -26,8 +26,9 @@ class Limits
      */
     public function for(User $user): array
     {
-        $cooldown = max(0.0, (float) $this->settings->get(Settings::COOLDOWN));
-        $daily = max(0, (int) $this->settings->get(Settings::DAILY));
+        // A cleared field saves "", which must not read as 0 (no limit).
+        $cooldown = max(0.0, (float) $this->number(Settings::COOLDOWN));
+        $daily = max(0, (int) $this->number(Settings::DAILY));
 
         $overrides = json_decode((string) $this->settings->get(Settings::GROUPS), true);
         if (! is_array($overrides) || ! $overrides) {
@@ -88,5 +89,12 @@ class Limits
             'left' => $left,
             'freeAt' => $left > 0 ? null : Carbon::parse($times->last())->addDay(),
         ];
+    }
+
+    private function number(string $key): mixed
+    {
+        $value = $this->settings->get($key);
+
+        return is_numeric($value) ? $value : Settings::DEFAULTS[$key];
     }
 }
